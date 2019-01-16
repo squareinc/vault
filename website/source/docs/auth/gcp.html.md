@@ -18,7 +18,6 @@ authentication of:
 - Google Cloud IAM service accounts
 - Google Compute Engine (GCE) instances
 
-
 This backend focuses on identities specific to Google _Cloud_ and does not
 support authenticating arbitrary Google or G Suite users or generic OAuth
 against Google.
@@ -159,6 +158,7 @@ have the following role:
 roles/iam.serviceAccountTokenCreator
 ```
 
+
 ## Group Aliases
 
 As of Vault 1.0, roles can specify an `add_group_aliases` boolean parameter
@@ -175,6 +175,7 @@ will include the following aliases:
   "organization-$ORG_ID"
 ]
 ```
+
 
 ## Implementation Details
 
@@ -234,9 +235,9 @@ tokens.
 ### IAM
 
 This describes how to use the GCP IAM [API method][signjwt-method] directly
-to generate the signed JWT with the claims that Vault expects. Note the CLI 
-does this process for you and is much easier, and that there is very little 
-reason to do this yourself. 
+to generate the signed JWT with the claims that Vault expects. Note the CLI
+does this process for you and is much easier, and that there is very little
+reason to do this yourself.
 
 #### curl Example
 
@@ -250,8 +251,8 @@ Vault requires the following minimum claim set:
 }
 ```
 
-For the API method, expiration is optional and will default to an hour. 
-If specified, expiration must be a 
+For the API method, expiration is optional and will default to an hour.
+If specified, expiration must be a
 [NumericDate](https://tools.ietf.org/html/rfc7519#section-2) value (seconds from
 Epoch). This value must be before the max JWT expiration allowed for a role.
 This defaults to 15 minutes and cannot be more than 1 hour.
@@ -276,7 +277,7 @@ curl \
 
 #### gcloud Example
 
-You can also do this through the (currently beta) gcloud command. 
+You can also do this through the (currently beta) gcloud command.
 
 ```text
 $ gcloud beta iam service-accounts sign-jwt $INPUT_JWT_CLAIMS $OUTPUT_JWT_FILE \
