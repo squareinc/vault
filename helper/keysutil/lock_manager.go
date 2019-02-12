@@ -54,19 +54,46 @@ type PolicyRequest struct {
 }
 
 type LockManager struct {
-	useCache bool
-	// If caching is enabled, the map of name to in-memory policy cache
-	cache sync.Map
-
-	keyLocks []*locksutil.LockEntry
+	useCache  bool
+	cacheType CacheType
+	cache     Cache
+	keyLocks  []*locksutil.LockEntry
 }
 
 func NewLockManager(cacheDisabled bool) *LockManager {
 	lm := &LockManager{
-		useCache: !cacheDisabled,
-		keyLocks: locksutil.CreateLocks(),
+		useCache:  !cacheDisabled,
+		cacheType: SYNCMAP,
+		cache:     NewTransitSyncMap(),
+		keyLocks:  locksutil.CreateLocks(),
 	}
 	return lm
+}
+
+func (lm *LockManager) ConvertCacheToLRU(size int) {
+	// purge previous cache
+	lm.cache.Purge()
+
+	// update LockManager
+	lm.cacheType = LRU
+	lm.cache = NewTransitLRU(size)
+}
+
+func (lm *LockManager) ConvertCacheToSyncmap() {
+	// purge previous cache
+	lm.cache.Purge()
+
+	// update LockManager
+	lm.cacheType = SYNCMAP
+	lm.cache = NewTransitSyncMap()
+}
+
+func (lm *LockManager) GetCacheType() CacheType {
+	return lm.cacheType
+}
+
+func (lm *LockManager) GetCacheLength() int {
+	return lm.cache.Len()
 }
 
 func (lm *LockManager) CacheActive() bool {

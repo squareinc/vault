@@ -47,6 +47,7 @@ func Backend(conf *logical.BackendConfig) *backend {
 			b.pathBackup(),
 			b.pathRestore(),
 			b.pathTrim(),
+			b.pathCacheConfig(),
 		},
 
 		Secrets:     []*framework.Secret{},
