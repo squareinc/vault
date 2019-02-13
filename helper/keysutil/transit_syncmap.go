@@ -25,14 +25,6 @@ func (c *TransitSyncMap) Store(key, value interface{}) {
 	c.syncmap.Store(key, value)
 }
 
-func (c *TransitSyncMap) Purge() {
-	deleteFunc := func(key, value interface{}) bool {
-		c.syncmap.Delete(key)
-		return true
-	}
-	c.syncmap.Range(deleteFunc)
-}
-
 func (c *TransitSyncMap) Len() int {
 	length := 0
 	countFunc := func(_, _ interface{}) bool {
@@ -41,4 +33,8 @@ func (c *TransitSyncMap) Len() int {
 	}
 	c.syncmap.Range(countFunc)
 	return length
+}
+
+func (c *TransitSyncMap) Size() int {
+	return 0
 }

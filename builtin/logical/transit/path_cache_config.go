@@ -28,15 +28,6 @@ Size of cache for a cache type that accepts a size. This is required for cache t
 that accept a size and currently applies only to "lru" cache type.
 `,
 			},
-			"compute-cache-length": &framework.FieldSchema{
-				Type:    framework.TypeBool,
-				Default: false,
-				Description: `
-When performing a Read to determine the current cache-type
-this flag will also compute the number of items in the cache.
-This can be a long operation for large syncmap caches.
-`,
-			},
 		},
 
 		Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -51,22 +42,21 @@ This can be a long operation for large syncmap caches.
 }
 
 func (b *backend) pathCacheConfigWrite(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-
 	// get target cacheType
 	cacheTypeStr := d.Get("cache-type").(string)
 	cacheSize := d.Get("cache-size").(int)
 	var cacheType keysutil.CacheType
 	switch cacheTypeStr {
 	case "syncmap":
-		cacheType = keysutil.SYNCMAP
+		cacheType = keysutil.SyncMap
 	case "lru":
 		cacheType = keysutil.LRU
 	default:
-		cacheType = keysutil.NOTIMPLEMENTED
+		cacheType = keysutil.NotImplemented
 	}
 
 	// err if the requested cacheType has not been implemented
-	if cacheType == keysutil.NOTIMPLEMENTED {
+	if cacheType == keysutil.NotImplemented {
 		return logical.ErrorResponse(fmt.Sprintf("unknown cache-type %s", cacheTypeStr)), logical.ErrInvalidRequest
 	}
 
@@ -76,20 +66,21 @@ func (b *backend) pathCacheConfigWrite(ctx context.Context, req *logical.Request
 	}
 
 	// change the cache type
-	if cacheType == keysutil.SYNCMAP {
+	if cacheType == keysutil.SyncMap {
 		b.lm.ConvertCacheToSyncmap()
 	}
 
 	if cacheType == keysutil.LRU {
 		b.lm.ConvertCacheToLRU(cacheSize)
 	}
+
 	return nil, nil
 }
 
 func (b *backend) pathCacheConfigRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	var cacheType string
 	switch b.lm.GetCacheType() {
-	case keysutil.SYNCMAP:
+	case keysutil.SyncMap:
 		cacheType = "syncMap"
 	case keysutil.LRU:
 		cacheType = "lru"
@@ -100,14 +91,8 @@ func (b *backend) pathCacheConfigRead(ctx context.Context, req *logical.Request,
 	resp := &logical.Response{
 		Data: map[string]interface{}{
 			"cache-type": cacheType,
+			"cache-size": b.lm.GetCacheSize(),
 		},
-	}
-
-	// compute cache length if requested
-	var cacheLen int
-	if d.Get("compute-cache-length").(bool) {
-		cacheLen = b.lm.GetCacheLength()
-		resp.Data["cache-length"] = cacheLen
 	}
 
 	return resp, nil
@@ -116,7 +101,6 @@ func (b *backend) pathCacheConfigRead(ctx context.Context, req *logical.Request,
 const pathCacheConfigHelpSyn = `Configure caching strategy`
 
 const pathCacheConfigHelpDesc = `
-This path is used to configure the caching strategy for the transit mount.
-supports adjusting the minimum version of the key allowed to
-be used for decryption via the min_decryption_version parameter.
+This path is used to configure and query the caching strategy for the transit mount.
+For cache-types that do not have an upperbound like "syncmap", 0 is returned.
 `

@@ -3,12 +3,13 @@ package keysutil
 import lru "github.com/hashicorp/golang-lru"
 
 type TransitLRU struct {
-	lru *lru.TwoQueueCache
+	size int
+	lru  *lru.TwoQueueCache
 }
 
 func NewTransitLRU(size int) *TransitLRU {
 	lru, _ := lru.New2Q(size)
-	return &TransitLRU{lru: lru}
+	return &TransitLRU{lru: lru, size: size}
 }
 
 func (c *TransitLRU) Delete(key interface{}) {
@@ -24,10 +25,10 @@ func (c *TransitLRU) Store(key, value interface{}) {
 	c.lru.Add(key, value)
 }
 
-func (c *TransitLRU) Purge() {
-	c.lru.Purge()
-}
-
 func (c *TransitLRU) Len() int {
 	return c.lru.Len()
+}
+
+func (c *TransitLRU) Size() int {
+	return c.size
 }
