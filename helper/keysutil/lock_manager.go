@@ -72,12 +72,17 @@ func NewLockManager(cacheDisabled bool) *LockManager {
 	return lm
 }
 
-func (lm *LockManager) ConvertCacheToLRU(size int) {
+func (lm *LockManager) ConvertCacheToLRU(size int) error {
 	lm.lock.Lock()
 	defer lm.lock.Unlock()
 	// update LockManager
+	newCache, err := NewTransitLRU(size)
+	if err != nil {
+		return err
+	}
 	lm.cacheType = LRU
-	lm.cache = NewTransitLRU(size)
+	lm.cache = newCache
+	return nil
 }
 
 func (lm *LockManager) ConvertCacheToSyncmap() {

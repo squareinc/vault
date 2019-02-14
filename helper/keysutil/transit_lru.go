@@ -7,9 +7,9 @@ type TransitLRU struct {
 	lru  *lru.TwoQueueCache
 }
 
-func NewTransitLRU(size int) *TransitLRU {
-	lru, _ := lru.New2Q(size)
-	return &TransitLRU{lru: lru, size: size}
+func NewTransitLRU(size int) (*TransitLRU, error) {
+	lru, err := lru.New2Q(size)
+	return &TransitLRU{lru: lru, size: size}, err
 }
 
 func (c *TransitLRU) Delete(key interface{}) {

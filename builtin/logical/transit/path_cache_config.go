@@ -57,7 +57,7 @@ func (b *backend) pathCacheConfigWrite(ctx context.Context, req *logical.Request
 
 	// err if the requested cacheType has not been implemented
 	if cacheType == keysutil.NotImplemented {
-		return logical.ErrorResponse(fmt.Sprintf("unknown cache-type %s", cacheTypeStr)), logical.ErrInvalidRequest
+		return logical.ErrorResponse(fmt.Sprintf("unknown cache-type %q", cacheTypeStr)), logical.ErrInvalidRequest
 	}
 
 	// err if cacheType is lru but no cache-size was specified
@@ -70,11 +70,12 @@ func (b *backend) pathCacheConfigWrite(ctx context.Context, req *logical.Request
 		b.lm.ConvertCacheToSyncmap()
 	}
 
+	var err error
 	if cacheType == keysutil.LRU {
-		b.lm.ConvertCacheToLRU(cacheSize)
+		err = b.lm.ConvertCacheToLRU(cacheSize)
 	}
 
-	return nil, nil
+	return nil, err
 }
 
 func (b *backend) pathCacheConfigRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
@@ -90,8 +91,8 @@ func (b *backend) pathCacheConfigRead(ctx context.Context, req *logical.Request,
 
 	resp := &logical.Response{
 		Data: map[string]interface{}{
-			"cache-type": cacheType,
-			"cache-size": b.lm.GetCacheSize(),
+			"cache-type":     cacheType,
+			"cache-max-size": b.lm.GetCacheSize(),
 		},
 	}
 
@@ -102,5 +103,5 @@ const pathCacheConfigHelpSyn = `Configure caching strategy`
 
 const pathCacheConfigHelpDesc = `
 This path is used to configure and query the caching strategy for the transit mount.
-For cache-types that do not have an upperbound like "syncmap", 0 is returned.
+For cache-types that do not have maximum size like "syncmap" a 0 cache-max-size is returned.
 `
