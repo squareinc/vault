@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/helper/keysutil"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
@@ -70,12 +71,14 @@ func (b *backend) pathCacheConfigWrite(ctx context.Context, req *logical.Request
 		b.lm.ConvertCacheToSyncmap()
 	}
 
-	var err error
 	if cacheType == keysutil.LRU {
-		err = b.lm.ConvertCacheToLRU(cacheSize)
+		err := b.lm.ConvertCacheToLRU(cacheSize)
+		if err != nil {
+			return nil, errwrap.Wrapf("failed to convert cache-type to lru: {{err}}", err)
+		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 func (b *backend) pathCacheConfigRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
