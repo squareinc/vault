@@ -1,14 +1,20 @@
-## Next
+## 1.0.3 (February 12th, 2019)
 
 CHANGES:
 
  * New AWS authentication plugin mounts will default to using the generated
-   role ID as the Identity alias name.  This applies to both EC2 and IAM auth.
-   Existing mounts will not be affected.
+   role ID as the Identity alias name. This applies to both EC2 and IAM auth.
+   Existing mounts that explicitly set this value will not be affected but
+   mounts that specified no preference will switch over on upgrade.
  * The default policy now allows a token to look up its associated identity
    entity either by name or by id [GH-6105]
  * The Vault UI's navigation and onboarding wizard now only displays items that
    are permitted in a users' policy [GH-5980, GH-6094]
+ * An issue was fixed that caused recovery keys to not work on secondary 
+   clusters when using a different unseal mechanism/key than the primary. This 
+   would be hit if the cluster was rekeyed or initialized after 1.0. We recommend
+   rekeying the recovery keys on the primary cluster if you meet the above 
+   requirements.
 
 FEATURES:
 
@@ -47,6 +53,8 @@ BUG FIXES:
    a performance standby very quickly, before an associated entity has been
    replicated. If the entity is not found in this scenario, the request will
    forward to the active node.
+ * replication: Fix issue where recovery keys would not work on secondary 
+   clusters if using a different unseal mechanism than the primary.
  * replication: Fix a "failed to register lease" error when using performance
    standbys
  * storage/postgresql: The `Get` method will now return an Entry object with
